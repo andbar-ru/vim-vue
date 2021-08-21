@@ -30,7 +30,7 @@ for s:language in s:languages
   endif
 endfor
 
-let s:html_indent = s:get_indentexpr('vue-html')
+let s:html_indent = s:get_indentexpr('htmlvue')
 
 let b:did_indent = 1
 
