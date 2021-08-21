@@ -16,8 +16,12 @@
 " relative PNL.
 "
 " * First non-empty line => 0
+" * CL is comment end: '-->'
+" * * PNL is comment beginning => +0
+" * * else => -1
+" * PNL is comment beginning: '<!--' => +1
 " * CL begins with CT:
-" * * CL — '>' and PNL — OT => +1 (special case for plugin vim-closetag)
+" * * CL is '>' and PNL is OT => +1 (special case for plugin vim-closetag)
 " * * PNL begins with OT and doesn't end CT => +0
 " * * else => -1
 " * PNL doesn't contain tags => +0
@@ -51,11 +55,13 @@ function! HtmlVueIndent()
 
   " Variables
   let cur_line = trim(getline(v:lnum))
+  let cur_line_is_comment_end = cur_line =~ '^-->$'
   let cur_line_starts_with_closing_tag = cur_line =~ '^</'..s:tagname..'>'
         \ || cur_line =~ '^/>'
         \ || cur_line =~ '^>'
   let prev_line_ind = indent(prev_line_num)
   let prev_line = trim(getline(prev_line_num))
+  let prev_line_is_comment_start = prev_line =~ '^<!--$'
   let prev_line_starts_with_opening_tag = prev_line =~ '^<'..s:tagname
   let prev_line_ends_with_closing_tag = prev_line =~ '</'..s:tagname..'>$'
         \ || prev_line =~ '/>$'
@@ -63,7 +69,17 @@ function! HtmlVueIndent()
   let prev_line_is_without_tags = !prev_line_starts_with_opening_tag
         \ && !prev_line_ends_with_closing_tag
 
-  if cur_line_starts_with_closing_tag
+  if cur_line_is_comment_end
+    echoc "cur_line_is_comment_end"
+    if prev_line_is_comment_start
+      let ind = prev_line_ind
+    else
+      let ind = prev_line_ind - shiftwidth()
+    endif
+  elseif prev_line_is_comment_start
+    echoc "prev_line_is_comment_start"
+    let ind = prev_line_ind + shiftwidth()
+  elseif cur_line_starts_with_closing_tag
     echoc "cur_line_starts_with_closing_tag" cur_line
     " Special case for plugin vim-closetag
     if cur_line =~ '^>$' && prev_line_is_opening_tag
