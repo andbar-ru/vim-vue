@@ -63,24 +63,24 @@ function! HtmlVueIndent()
   let prev_line = trim(getline(prev_line_num))
   let prev_line_is_comment_start = prev_line =~ '^<!--$'
   let prev_line_starts_with_opening_tag = prev_line =~ '^<'..s:tagname
+        \ || prev_line =~ '^>$'
   let prev_line_ends_with_closing_tag = prev_line =~ '</'..s:tagname..'>$'
         \ || prev_line =~ '/>$'
-  let prev_line_is_opening_tag = prev_line_starts_with_opening_tag && !prev_line_ends_with_closing_tag && prev_line =~ '>$'
+  let prev_line_is_opening_tag = prev_line_starts_with_opening_tag
+        \ && !prev_line_ends_with_closing_tag
+        \ && prev_line =~ '>$'
   let prev_line_is_without_tags = !prev_line_starts_with_opening_tag
         \ && !prev_line_ends_with_closing_tag
 
   if cur_line_is_comment_end
-    echoc "cur_line_is_comment_end"
     if prev_line_is_comment_start
       let ind = prev_line_ind
     else
       let ind = prev_line_ind - shiftwidth()
     endif
   elseif prev_line_is_comment_start
-    echoc "prev_line_is_comment_start"
     let ind = prev_line_ind + shiftwidth()
   elseif cur_line_starts_with_closing_tag
-    echoc "cur_line_starts_with_closing_tag" cur_line
     " Special case for plugin vim-closetag
     if cur_line =~ '^>$' && prev_line_is_opening_tag
       let ind = prev_line_ind + shiftwidth()
@@ -90,16 +90,12 @@ function! HtmlVueIndent()
       let ind = prev_line_ind - shiftwidth()
     endif
   elseif prev_line_is_without_tags
-    echoc "prev_line_is_without_tags" prev_line
     let ind = prev_line_ind
   elseif prev_line_ends_with_closing_tag
-    echoc "prev_line_ends_with_closing_tag" prev_line
     let ind = prev_line_ind
   elseif prev_line_starts_with_opening_tag
-    echoc "prev_line_starts_with_opening_tag" prev_line
     return prev_line_ind + shiftwidth()
   else
-    echoc "else"
     let ind = prev_line_ind
   endif
 
